@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Discover - Shortest Path Application</title>
+
+</head>
+<body>
+<div class="container">
+</div>
+<link href="http://www.jqueryscript.net/css/jquerysctipttop.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script type="text/javascript" src="js/jquery.simpletable.js"></script>
+<link href="css/style.css" rel="stylesheet">
+<script>
+    $(document).ready(function(){
+        var planets = [];
+        $.get('/planet').then(function(res) {
+            planets = res;
+            $.each(planets, function(id, planet)
+            {
+                $('#source').append('<option value=' + planet.id + '>' + planet.name + '</option>');
+                $('#destination').append('<option value=' + planet.id + '>' + planet.name + '</option>');
+                $('#source').val('A');
+            });
+        });
+        $("#getShortPath").click(function(){
+            var source = $('#source').val();
+            var destination = $('#destination').val();
+            var includeTraffic = $('#includeTraffic').val();
+           $.get('/shortestpath?source='+source+'&destination='+destination+'&includeTraffic=' + includeTraffic)
+               .then(function(res){
+                   $('#result').text('');
+                   if(res.shortestPath) {
+                       $.each(res.shortestPath, function(id, planet)
+                       {
+                           var postFix = '';
+                           if(id < (res.shortestPath.length - 1)) {
+                               postFix = ' -> '
+                           }
+                           $('#result').append(planet + postFix);
+                       });
+                   } else {
+                       $('#result').text('No Route Found');
+                   }
+               });
+        });
+
+        $("#planets_table").simpletable({
+            getURL : function(){
+                return "/planet";
+            },
+            dataFormatter : function(dataraw){
+                return dataraw;
+            },
+            deleteURL : function(idPrime){
+                return "/planet/"+idPrime;
+            },
+            editURL : function(idPrime){
+                return "/planet/"+idPrime;
+            },
+            addURL : function(idPrime){
+                return "/planet";
+            },
+            format : "json"
+        });
+
+    });
+</script>
+
+
+
+<ul class="nav nav-tabs">
+    <li class="active" id="hometab"><a data-toggle="tab" href="#home">Home</a></li>
+    <li id="plantestab"><a data-toggle="tab" href="#planets" >Planets</a></li>
+    <li id="routestab"><a data-toggle="tab" href="#routes">Routes</a></li>
+</ul>
+<div class="tab-content">
+    <div id="home" class="tab-pane fade in active">
+        <div id="shortestpath">
+                <div class="form-group shortpathformelement">
+                    <label for="source">Source </label>
+                    <select class="form-control" id="source"><option>-- select --></option></select>
+                </div>
+                <div class="form-group shortpathformelement">
+                    <label for="destination">Destination</label>
+                    <select class="form-control" id="destination"><option>-- select --></option></select>
+                </div>
+                <div class="form-check shortpathformelement">
+                    <input type="checkbox" class="form-check-input" id="includeTraffic">
+                    <label class="form-check-label" for="includeTraffic">Include Traffic</label>
+                </div>
+                <div class="shortestpath-button">
+                    <button class="btn btn-primary" style="" id="getShortPath">Submit</button>
+                </div>
+
+        </div>
+        <div class="result" id="result">
+
+        </div>
+    </div>
+    <div id="planets" class="tab-pane fade">
+        <table class="table table-bordered table-striped table-fixed" id='planets_table'>
+            <thead>
+            <tr>
+                <th class="text-center" id="id" type="text" prime="true" static="true">ID</th>
+                <th class="text-center" id="name" type="text">Name</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <div id="routes" class="tab-pane fade">
+        <h3>Routes</h3>
+    </div>
+</div>
+
+</body>
+</html>
